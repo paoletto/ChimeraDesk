@@ -3,6 +3,7 @@
 env
 
 FFMPEGPORT=12345
+DISPLAY=:1001
 
 # try to guess the screen resolution for ffmpeg
 Xres=$(xrandr -d $DISPLAY | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f1)
@@ -23,8 +24,10 @@ sleep 1 && kill -0 $kvmpid
 kvm_error=$?
 if [[ $kvm_error -eq 0 ]]; then
     #notify-send "Screen sharing is starting..."
+    echo "Screen sharing is starting..."
 else
     #notify-send "Screen sharing could not start"
+    echo "Screen sharing could not start"
     exit 1
 fi
 
