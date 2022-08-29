@@ -33,7 +33,7 @@ fi
 
 # If no ffmpeg config file is found, generate a default one
 if [[ ! -f ~/.config/hprdpvideo.sh ]]; then 
-    echo "echo \$BASHPID > /tmp/ffmpeg.pid; ffmpeg -f x11grab -draw_mouse 0 -s ${Xres}x${Yres} -framerate 30 -i ${DISPLAY}  -c:v libx264 -preset medium -profile high -pix_fmt yuv420p -tune zerolatency -b:v 500K -minrate 500K -maxrate 500K -bufsize 512k -f mpegts tcp://127.0.0.1:${FFMPEGPORT}\?listen" > ~/.config/hprdpvideo.sh
+    echo "echo \$BASHPID > /tmp/ffmpeg.pid; ffmpeg -f x11grab -draw_mouse 0 -s ${Xres}x${Yres} -framerate 30 -i ${DISPLAY} -vf \"scale=854:480\" -c:v libx264 -preset medium -profile high -pix_fmt yuv420p -tune zerolatency -b:v 500K -minrate 500K -maxrate 500K -bufsize 512k -f mpegts tcp://127.0.0.1:${FFMPEGPORT}\?listen" > ~/.config/hprdpvideo.sh
 fi
 
 # Launch ffmpeg screen sharing
