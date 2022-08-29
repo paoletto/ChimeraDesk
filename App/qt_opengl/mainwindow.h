@@ -7,8 +7,6 @@
 #include <QTcpSocket>
 
 class MpvWidget;
-class QSlider;
-class QPushButton;
 class MainWindow : public QWidget
 {
     Q_OBJECT
