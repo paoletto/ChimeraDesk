@@ -5,7 +5,7 @@ from pynput.mouse import Button, Controller as mouseController
 from pynput.keyboard import Key, Controller as kbdController
 import pynput
 
-HOST = '127.0.0.1' 
+HOST = "" #'127.0.0.1'
 PORT = 12346 
 
 special_codes = {
@@ -79,8 +79,12 @@ special_codes = {
         }
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.connect((HOST, PORT))
-    s.sendall(b'HELLO')
+    #s.connect((HOST, PORT))
+    s.bind((HOST,PORT))
+    s.listen(1)
+    clientSocket, addr = s.accept()
+    print("got a connection from %s" % str(addr))
+    #s.sendall(b'HELLO')
     mouse = mouseController()
     keyboard = kbdController()
 
