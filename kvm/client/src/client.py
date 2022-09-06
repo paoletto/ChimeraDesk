@@ -4,9 +4,12 @@ import socket
 from pynput.mouse import Button, Controller as mouseController
 from pynput.keyboard import Key, Controller as kbdController
 import pynput
+import os
 
 HOST = "" #'127.0.0.1'
 PORT = 12346 
+DISPLAY = ":1001"
+os.environ["DISPLAY"] = DISPLAY
 
 special_codes = {
         32: Key.space,
