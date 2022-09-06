@@ -10,8 +10,10 @@
 #include <QWheelEvent> 
 #include <QHostAddress>
 #include <QAbstractSocket>
+#include <QCoreApplication>
+#include <QMetaEnum>
 
-MainWindow::MainWindow(QWidget *parent) : QWidget(parent), _server(this)
+MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
 {
     m_mpv = new MpvWidget(this);
     m_mpv->installEventFilter(this);
@@ -21,56 +23,56 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent), _server(this)
     vl->addWidget(m_mpv);
     vl->addLayout(hb);
     setLayout(vl);
+
     // m_mpv->command(QStringList() << "loadfile" << "tcp://0.0.0.0:12345?listen");
-    _server.listen(QHostAddress::Any, 12346);
-    connect(&_server, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
+//    _server.listen(QHostAddress::Any, 12346);
+//    connect(&_server, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
+
+
+    connect(&socket, &QAbstractSocket::connected,
+            this, &MainWindow::onNewConnection);
+    connect(&socket, &QIODevice::readyRead, this, &MainWindow::onReadyRead);
+    connect(&socket, &QAbstractSocket::stateChanged,
+            this, &MainWindow::onSocketStateChanged);
+    connect(&socket, &QAbstractSocket::errorOccurred, this, &MainWindow::onErrorOccurred);
+//    socket.connectToHost(QHostAddress("127.0.0.1"), 12346);
+    onNewConnection();
 }
 
 void MainWindow::onNewConnection()
 {
    qInfo()<<"onNewConnection()";
-   QTcpSocket *clientSocket = _server.nextPendingConnection();
-   connect(clientSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
-   connect(clientSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
-   m_mpv->command(QStringList() << "loadfile" << "tcp://0.0.0.0:12345?listen");
-
-    _sockets.push_back(clientSocket);
-    for (QTcpSocket* socket : _sockets) {
-        socket->write(QByteArray::fromStdString(clientSocket->peerAddress().toString().toStdString() + " connected to server !\n"));
-        qInfo()<<"connected to server!";
-    }
+//   m_mpv->command(QStringList() << "loadfile" << "tcp://0.0.0.0:12345?listen");
+   m_mpv->command(QStringList() << "loadfile" << "tcp://127.0.0.1:12345");
 }
 
 void MainWindow::onSocketStateChanged(QAbstractSocket::SocketState socketState)
 {
-    qInfo()<<"onSocketStateChanged()";
-    if (socketState == QAbstractSocket::UnconnectedState)
-    {
-        QTcpSocket* sender = static_cast<QTcpSocket*>(QObject::sender());
-        _sockets.removeOne(sender);
-    }
+    qInfo()<<"onSocketStateChanged()"<<socketState;
 }
 
 void MainWindow::onReadyRead()
 {
     qInfo()<<"onReadyRead()";
     QTcpSocket* sender = static_cast<QTcpSocket*>(QObject::sender());
-    QByteArray datas = sender->readAll();
-    for (QTcpSocket* socket : _sockets) {
-        if (socket != sender)
-            socket->write(QByteArray::fromStdString(sender->peerAddress().toString().toStdString() + ": " + datas.toStdString()));
-    }
+    QByteArray data = sender->readAll();
+    qDebug() <<  data;
+}
+
+void MainWindow::onErrorOccurred(QAbstractSocket::SocketError error)
+{
+    qDebug() << "onErrorOccurred " << QMetaEnum::fromType<QAbstractSocket::SocketError>().valueToKey(error);
+    QCoreApplication::quit();
 }
 
 bool MainWindow::sendMessage(QString msg)
 {
-    if (_sockets.count() > 0){
-      msg += " ";
-      _sockets[0]->write(msg.toUtf8().leftJustified(64, '.'));
-      qInfo()<<msg<<"SENT";
-      return true;
+    msg += " ";
+    if (socket.isOpen()) {
+        socket.write(msg.toUtf8().leftJustified(64, '.'));
+        qInfo()<<msg<<"SENT";
+        return true;
     }
-    qInfo()<<msg<<"NOT SENT";
     return false;
 }
 
@@ -139,9 +141,9 @@ QPoint MainWindow::translateMouseCoords(QPoint mp)
   int video_w = int(m_mpv->getProperty("video-params/w").toDouble());
   int video_h = int(m_mpv->getProperty("video-params/h").toDouble());
 
-  // qInfo()<<"OSD borders:"<<osd_border_top<<osd_border_left<<"\n";
-  // qInfo()<<"Content w,h:"<<w<<h<<"\n";
-  // qInfo()<<"Remote Screen w,h:"<<video_w<<video_h<<"\n";
+  qDebug()<<"OSD borders:"<<osd_border_top<<osd_border_left<<"\n";
+  qDebug()<<"Content w,h:"<<w<<h<<"\n";
+  qDebug()<<"Remote Screen w,h:"<<video_w<<video_h<<"\n";
 
   int x = mp.x() - osd_border_left;
   int y = mp.y() - osd_border_top;

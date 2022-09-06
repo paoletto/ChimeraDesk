@@ -18,6 +18,7 @@ public slots:
     void onNewConnection();
     void onSocketStateChanged(QAbstractSocket::SocketState socketState);
     void onReadyRead();
+    void onErrorOccurred(QAbstractSocket::SocketError);
 private Q_SLOTS:
 private:
     bool sendMessage(QString msg);
@@ -25,8 +26,9 @@ private:
     QString keyStr(int code, QString text);
     QPoint translateMouseCoords(QPoint mp);
     MpvWidget *m_mpv;
-    QTcpServer  _server;
-    QList<QTcpSocket*>  _sockets;
+//    QTcpServer  _server;
+//    QList<QTcpSocket*>  _sockets;
+    QTcpSocket socket;
 };
 
 #endif // MainWindow_H
