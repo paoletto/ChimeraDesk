@@ -159,7 +159,7 @@ QPoint MainWindow::translateMouseCoords(QPoint mp)
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
-  // qInfo()<<event->type();
+//  qDebug()<<event->type();
 
   if (event->type() == QEvent::KeyPress)
   {
