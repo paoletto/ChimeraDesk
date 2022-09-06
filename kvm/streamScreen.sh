@@ -9,7 +9,7 @@ Xres=$(xrandr -d $DISPLAY | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f1)
 Yres=$(xrandr -d $DISPLAY | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f2)
 AR=$(echo "${Xres} / ${Yres}" |bc -l |colrm 10)
 
-FFMPEG="/local/home/paolo/Downloads/ffmpeg/ffmpeg"
+FFMPEG="ffmpeg"
 #$FFMPEG  -init_hw_device qsv -hwaccel qsv -f x11grab -draw_mouse 0  -s ${Xres}x${Yres} -framerate 30 -i :0  -vf "scale=${OUTPUTW}:${OUTPUTH},mpdecimate=hi=1:lo=1:frac=1:max=8"  -c:v hevc_qsv  -load_plugin hevc_hw -preset medium -global_quality 22 -f mpegts-bufsize 512k -f mpegts "tcp://127.0.0.1:${FFMPEGPORT}\?listen"
 #$FFMPEG  -init_hw_device qsv -hwaccel qsv -f x11grab -draw_mouse 0  -s ${Xres}x${Yres} -framerate 30 -i :0  -vf "scale=${OUTPUTW}:${OUTPUTH}"  -c:v hevc_qsv  -load_plugin hevc_hw -preset medium -global_quality 22 -f mpegts  /tmp/foo.mpegts
 #${FFMPEG} -f x11grab -draw_mouse 0 -s ${Xres}x${Yres} -framerate 30 -i ${DISPLAY} -vf \"scale=854:480\" -c:v libx264 -preset medium -profile high -pix_fmt yuv420p -tune zerolatency -b:v 500K -minrate 500K -maxrate 500K -bufsize 512k -f mpegts tcp://127.0.0.1:${FFMPEGPORT}\?listen
