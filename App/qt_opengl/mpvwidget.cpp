@@ -52,6 +52,14 @@ MpvWidget::MpvWidget(QWidget *parent, Qt::WindowFlags f)
 
     mpv_observe_property(mpv, 0, "duration", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv, 0, "time-pos", MPV_FORMAT_DOUBLE);
+    // https://mpv.io/manual/master/#properties
+    mpv_observe_property(mpv, 0, "width, height", MPV_FORMAT_DOUBLE);
+    mpv_observe_property(mpv, 0, "video-params", MPV_FORMAT_NONE);
+//    mpv_observe_property(mpv, 0, "video-params", MPV_FORMAT_DOUBLE);
+//    mpv_observe_property(mpv, 0, "video-params", MPV_FORMAT_DOUBLE);
+//    mpv_observe_property(mpv, 0, "video-params", MPV_FORMAT_DOUBLE);
+
+    mpv_request_event(mpv, MPV_EVENT_FILE_LOADED, 1);
     mpv_set_wakeup_callback(mpv, wakeup, this);
 }
 
@@ -134,8 +142,15 @@ void MpvWidget::handle_mpv_event(mpv_event *event)
                 double time = *(double *)prop->data;
                 Q_EMIT durationChanged(time);
             }
+//        } else if (strcmp(prop->name, "width, height") == 0) {
+        } else if (strcmp(prop->name, "video-params") == 0) {
+            qDebug() << "======== WH changed!!!!!!!!!!!!!!!";
+            Q_EMIT fileLoaded();
         }
         break;
+    }
+    case MPV_EVENT_FILE_LOADED: {
+
     }
     default: ;
         // Ignore uninteresting or unknown events.

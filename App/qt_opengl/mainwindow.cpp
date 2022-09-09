@@ -12,17 +12,29 @@
 #include <QAbstractSocket>
 #include <QCoreApplication>
 #include <QMetaEnum>
+#include <unordered_set>
 
-MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
+namespace  {
+const std::unordered_set<QEvent::Type> toSkip{
+QEvent::MetaCall, QEvent::Paint
+};
+
+}
+
+MainWindow::MainWindow()
 {
     m_mpv = new MpvWidget(this);
     m_mpv->installEventFilter(this);
     m_mpv->setFocusPolicy(Qt::StrongFocus);
-    QHBoxLayout *hb = new QHBoxLayout();
-    QVBoxLayout *vl = new QVBoxLayout();
-    vl->addWidget(m_mpv);
-    vl->addLayout(hb);
-    setLayout(vl);
+    m_mpv->setMouseTracking(true);
+//    QHBoxLayout *hb = new QHBoxLayout();
+//    QVBoxLayout *vl = new QVBoxLayout();
+//    vl->addWidget(m_mpv);
+//    vl->addLayout(hb);
+//    setLayout(vl);
+    setCentralWidget(m_mpv);
+    setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+
 
     // m_mpv->command(QStringList() << "loadfile" << "tcp://0.0.0.0:12345?listen");
 //    _server.listen(QHostAddress::Any, 12346);
@@ -35,6 +47,8 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
     connect(&socket, &QAbstractSocket::stateChanged,
             this, &MainWindow::onSocketStateChanged);
     connect(&socket, &QAbstractSocket::errorOccurred, this, &MainWindow::onErrorOccurred);
+    connect(m_mpv, &MpvWidget::fileLoaded,
+            this, &MainWindow::onFileLoaded);
 //    socket.connectToHost(QHostAddress("127.0.0.1"), 12346);
     onNewConnection();
 }
@@ -65,12 +79,73 @@ void MainWindow::onErrorOccurred(QAbstractSocket::SocketError error)
     QCoreApplication::quit();
 }
 
+void MainWindow::onFileLoaded() // misleading name
+{
+    auto sz = getVideoSize();
+    if (!sz.isEmpty())
+        arResize(sz);
+}
+
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    auto sz = event->size();
+//    qDebug() << "trapping resize event "<<sz<< " "<<m_adjustedSize;
+
+    if (sz == m_adjustedSize)
+        return;
+
+    arResize(sz);
+//    qDebug() << "trapping resize event "<<sz<< " "<<m_adjustedSize<<" "<<newW<<","<<newH;
+    event->setAccepted(true);
+}
+
+QSize MainWindow::getVideoSize()
+{
+    int osd_border_top = int(m_mpv->getProperty("osd-dimensions/mt").toDouble());
+    int osd_border_left = int(m_mpv->getProperty("osd-dimensions/ml").toDouble());
+    int w = int(m_mpv->getProperty("osd-width").toDouble()) - osd_border_left * 2;
+    int h = int(m_mpv->getProperty("osd-height").toDouble()) - osd_border_top * 2;
+    int video_w = int(m_mpv->getProperty("video-params/w").toDouble());
+    int video_h = int(m_mpv->getProperty("video-params/h").toDouble());
+    double aspect = double(m_mpv->getProperty("video-params/aspect").toDouble());
+    double par = double(m_mpv->getProperty("video-params/aspect").toDouble());
+
+//    qDebug()<<"OSD borders:"<<osd_border_top<<osd_border_left<<"\n";
+//    qDebug()<<"Content w,h:"<<w<<h<<"\n";
+//    qDebug()<<"Remote Screen w,h:"<<video_w<<video_h<<"\n";
+//    qDebug()<<"ARs: "<< aspect << " " << par;
+    m_ar = aspect;
+
+    return {int(w * aspect),h};
+}
+
+void MainWindow::arResize(QSize sz)
+{
+    m_adjustedSize = sz;
+    auto oldSize = size();
+
+    int newW = sz.width();
+    int newH = sz.height();
+    if (oldSize.width() == sz.width()) {
+        // use height
+        newW = newH * m_ar;
+    } else {
+        newH = newW / m_ar;
+    }
+    if (newW != oldSize.width() || newH != oldSize.height()) {
+        resize(newW, newH);
+        m_mpv->resize(newW, newH);
+    }
+}
+
 bool MainWindow::sendMessage(QString msg)
 {
+    qDebug()<<msg;
     msg += " ";
     if (socket.isOpen()) {
         socket.write(msg.toUtf8().leftJustified(64, '.'));
-        qInfo()<<msg<<"SENT";
+//        qInfo()<<msg<<"SENT";
         return true;
     }
     return false;
@@ -141,15 +216,17 @@ QPoint MainWindow::translateMouseCoords(QPoint mp)
   int video_w = int(m_mpv->getProperty("video-params/w").toDouble());
   int video_h = int(m_mpv->getProperty("video-params/h").toDouble());
 
-  qDebug()<<"OSD borders:"<<osd_border_top<<osd_border_left<<"\n";
-  qDebug()<<"Content w,h:"<<w<<h<<"\n";
-  qDebug()<<"Remote Screen w,h:"<<video_w<<video_h<<"\n";
+
 
   int x = mp.x() - osd_border_left;
   int y = mp.y() - osd_border_top;
   
   int nx = (x - 0) * video_w / w + 0;
   int ny = (y - 0) * video_h / h + 0;
+
+  qDebug()<<"OSD borders:"<<osd_border_top<<osd_border_left<<"\n";
+  qDebug()<<"Content w,h:"<<w<<h<<"\n";
+  qDebug()<<"Remote Screen w,h:"<<video_w<<video_h<<"\n";
   
   mp.setX(nx);
   mp.setY(ny);
@@ -159,7 +236,10 @@ QPoint MainWindow::translateMouseCoords(QPoint mp)
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
-//  qDebug()<<event->type();
+   if (toSkip.find(event->type()) != toSkip.end())
+        return false;
+
+   qDebug()<<event->type();
 
   if (event->type() == QEvent::KeyPress)
   {
