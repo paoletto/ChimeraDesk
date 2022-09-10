@@ -45,7 +45,7 @@ MainWindow::MainWindow()
     connect(m_mpv, &MpvWidget::fileLoaded,
             this, &MainWindow::onFileLoaded);
     socket.connectToHost(QHostAddress("127.0.0.1"), 12346);
-    onNewConnection();
+//    onNewConnection();
 }
 
 void MainWindow::onNewConnection()
