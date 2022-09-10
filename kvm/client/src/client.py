@@ -10,6 +10,7 @@ HOST = "" #'127.0.0.1'
 PORT = 12346 
 DISPLAY = ":1001"
 os.environ["DISPLAY"] = DISPLAY
+print(os.environ.get('DISPLAY', ''))
 
 special_codes = {
         32: Key.space,

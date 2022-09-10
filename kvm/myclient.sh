@@ -4,7 +4,7 @@ env
 
 FFMPEGPORT=12345
 DISPLAY=:1001
-DISPLAY=:0
+#DISPLAY=:0
 
 # try to guess the screen resolution for ffmpeg
 Xres=$(xrandr -d $DISPLAY | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f1)

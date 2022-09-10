@@ -10,6 +10,7 @@ FFMPEG="/local/home/paolo/Downloads/ffmpeg/ffmpeg"
 
 FFMPEGPORT=12345
 DISPLAY=:0
+DISPLAY=:1001
 OUTPUTW=${Xres}
 OUTPUTH=${Yres}
 
