@@ -37,6 +37,8 @@ private:
     QTcpSocket socket;
     QSize m_adjustedSize{0,0};
     qreal m_ar = 2560.0 / 1440.0; //1024. / 768.;
+    int m_osdBorderTop = 0;
+    int m_osdBorderLeft = 0;
     QSize m_remoteSize{1362, 973};
     QSize m_videoSize{0,0};
 };

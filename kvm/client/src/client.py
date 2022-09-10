@@ -95,8 +95,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     should_quit = False
 
     while not should_quit:
-        data = s.recv(64).decode().split()
-        # print('Received', data)
+        data = clientSocket.recv(64).decode().split()
+        print('Received', data)
         if len(data) == 0:
             break
 

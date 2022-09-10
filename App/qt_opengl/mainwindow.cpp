@@ -44,7 +44,7 @@ MainWindow::MainWindow()
     connect(&socket, &QAbstractSocket::errorOccurred, this, &MainWindow::onErrorOccurred);
     connect(m_mpv, &MpvWidget::fileLoaded,
             this, &MainWindow::onFileLoaded);
-//    socket.connectToHost(QHostAddress("127.0.0.1"), 12346);
+    socket.connectToHost(QHostAddress("127.0.0.1"), 12346);
     onNewConnection();
 }
 
@@ -77,8 +77,7 @@ void MainWindow::onErrorOccurred(QAbstractSocket::SocketError error)
 void MainWindow::onFileLoaded() // misleading name
 {
     auto sz = getVideoSize();
-    if (!sz.isEmpty())
-        arResize(sz);
+    arResize(sz);
 }
 
 
@@ -111,12 +110,16 @@ QSize MainWindow::getVideoSize()
 //    qDebug()<<"Remote Screen w,h:"<<video_w<<video_h<<"\n";
 //    qDebug()<<"ARs: "<< aspect << " " << par;
     m_ar = aspect;
-
+    m_osdBorderTop = int(m_mpv->getProperty("osd-dimensions/mt").toDouble());
+    m_osdBorderLeft = int(m_mpv->getProperty("osd-dimensions/ml").toDouble());
+    m_videoSize = {video_w, video_h};
     return {int(w * aspect),h};
 }
 
 void MainWindow::arResize(QSize sz)
 {
+    if (sz.isEmpty())
+        return;
     m_adjustedSize = sz;
     auto oldSize = size();
 
@@ -204,24 +207,19 @@ QString MainWindow::keyStr(int code, QString text)
 // translate to remote screen coordinates taking into account window size and borders
 QPoint MainWindow::translateMouseCoords(QPoint mp)
 {
-  int osd_border_top = int(m_mpv->getProperty("osd-dimensions/mt").toDouble()); 
-  int osd_border_left = int(m_mpv->getProperty("osd-dimensions/ml").toDouble());
-  int w = int(m_mpv->getProperty("osd-width").toDouble()) - osd_border_left * 2;
-  int h = int(m_mpv->getProperty("osd-height").toDouble()) - osd_border_top * 2;
-  int video_w = int(m_mpv->getProperty("video-params/w").toDouble());
-  int video_h = int(m_mpv->getProperty("video-params/h").toDouble());
+  auto winSize = size();
+  if (winSize.isEmpty() | m_videoSize.isEmpty())
+      return mp;
 
-
-
-  int x = mp.x() - osd_border_left;
-  int y = mp.y() - osd_border_top;
+  int x = mp.x() - m_osdBorderLeft;
+  int y = mp.y() - m_osdBorderTop;
   
-  int nx = (x - 0) * video_w / w + 0;
-  int ny = (y - 0) * video_h / h + 0;
+  int nx = x * m_videoSize.width() / winSize.width();
+  int ny = y * m_videoSize.height() / winSize.height();
 
-  qDebug()<<"OSD borders:"<<osd_border_top<<osd_border_left;
-  qDebug()<<"Content w,h:"<<w<<h;
-  qDebug()<<"Remote Screen w,h:"<<video_w<<video_h;
+//  qDebug()<<"OSD borders:"<<osd_border_top<<osd_border_left;
+//  qDebug()<<"Content w,h:"<<w<<h;
+//  qDebug()<<"Remote Screen w,h:"<<video_w<<video_h;
   
   mp.setX(nx);
   mp.setY(ny);
