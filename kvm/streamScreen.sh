@@ -6,7 +6,7 @@ Yres=$(xrandr -d $DISPLAY | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f2)
 AR=$(echo "${Xres} / ${Yres}" |bc -l |colrm 10)
 
 FFMPEG="ffmpeg"
-FFMPEG="/local/home/paolo/Downloads/ffmpeg/ffmpeg"
+#FFMPEG="/local/home/paolo/Downloads/ffmpeg/ffmpeg"
 
 FFMPEGPORT=12345
 DISPLAY=:0
