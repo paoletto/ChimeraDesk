@@ -1,5 +1,11 @@
 <img src="https://github.com/morrolinux/ChimeraDesk/raw/main/media/icon.png" width="100" height="100"> 
 
+# Update
+Hopeless performance on tight connections with medium/high latency.
+This doesn't get even close to NX protocol, even when tuning the encoder to run at 50/100 kbps, that is very little.
+The round trips are just too high, and disabling remote cursor prevents seeing when that cursor changes (such as resize, move, etc).
+
+
 # ChimeraDesk 
 
 A simple, fast and flexible DIY Remote Desktop software 
