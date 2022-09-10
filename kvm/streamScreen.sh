@@ -37,6 +37,6 @@ OUTPUTH=960
 # hevc lags as hell
 #$FFMPEG  -init_hw_device qsv -hwaccel qsv -f x11grab -draw_mouse 1 -i ${DISPLAY} -s ${Xres}x${Yres} -framerate 25 -vf "scale=${OUTPUTW}:${OUTPUTH}" -c:v hevc_qsv -load_plugin hevc_hw -profile main -preset fast     -aspect ${AR}                  -global_quality 30 -look_ahead_depth 0 -max_dec_frame_buffering 0 -bufsize 128k -f mpegts "tcp://127.0.0.1:12345?listen"
 #${FFMPEG} -init_hw_device qsv -hwaccel qsv -f x11grab -draw_mouse 1 -s ${Xres}x${Yres} -framerate 25 -i ${DISPLAY} -c:v h264_qsv                      -preset slow -profile 69 -aspect ${AR} -pix_fmt nv12 -global_quality 30 -look_ahead_depth 0 -max_dec_frame_buffering 0 -bufsize 128k -f mpegts "tcp://127.0.0.1:12345?listen"
-#                                                                   -s ${Xres}x${Yres}
-${FFMPEG} -init_hw_device qsv -hwaccel qsv -f x11grab -draw_mouse 1                     -framerate 25 -i ${DISPLAY} -vf "scale=${OUTPUTW}:${OUTPUTH}" -c:v hevc_qsv                      -preset medium -profile main -aspect ${AR} -pix_fmt nv12 -global_quality 30 -look_ahead_depth 0 -max_dec_frame_buffering 0 -bufsize 96k -f mpegts "tcp://127.0.0.1:12345?listen"
+#                                                                   -s ${Xres}x${Yres}                             -vf "scale=${OUTPUTW}:${OUTPUTH}"
+${FFMPEG} -init_hw_device qsv -hwaccel qsv -f x11grab -draw_mouse 1 -s ${Xres}x${Yres} -framerate 25 -i ${DISPLAY}  -c:v hevc_qsv                      -preset medium -profile main -aspect ${AR} -pix_fmt nv12 -global_quality 30 -look_ahead_depth 0 -max_dec_frame_buffering 0 -bufsize 96k -f mpegts "tcp://127.0.0.1:12345?listen"
 # -scenario 1 not supported everywhere

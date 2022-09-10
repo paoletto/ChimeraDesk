@@ -14,12 +14,7 @@
 #include <QMetaEnum>
 #include <unordered_set>
 
-namespace  {
-const std::unordered_set<QEvent::Type> toSkip{
-QEvent::MetaCall, QEvent::Paint
-};
 
-}
 
 MainWindow::MainWindow()
 {
@@ -224,22 +219,32 @@ QPoint MainWindow::translateMouseCoords(QPoint mp)
   int nx = (x - 0) * video_w / w + 0;
   int ny = (y - 0) * video_h / h + 0;
 
-  qDebug()<<"OSD borders:"<<osd_border_top<<osd_border_left<<"\n";
-  qDebug()<<"Content w,h:"<<w<<h<<"\n";
-  qDebug()<<"Remote Screen w,h:"<<video_w<<video_h<<"\n";
+  qDebug()<<"OSD borders:"<<osd_border_top<<osd_border_left;
+  qDebug()<<"Content w,h:"<<w<<h;
+  qDebug()<<"Remote Screen w,h:"<<video_w<<video_h;
   
   mp.setX(nx);
   mp.setY(ny);
 
   return mp;
 }
+namespace  {
+const std::unordered_set<QEvent::Type> toTrap{
+ QEvent::KeyPress
+,QEvent::KeyRelease
+         ,QEvent::MouseMove
+         ,QEvent::MouseButtonPress
+         ,QEvent::MouseButtonRelease
+         ,QEvent::Wheel
+};
 
+}
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
-   if (toSkip.find(event->type()) != toSkip.end())
+   if (toTrap.find(event->type()) == toTrap.end())
         return false;
 
-   qDebug()<<event->type();
+  qDebug()<<event->type();
 
   if (event->type() == QEvent::KeyPress)
   {
